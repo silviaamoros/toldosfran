@@ -310,7 +310,7 @@ function actualizarNum() {
   const n = tipodoc === 'factura'
     ? 'F-' + String(numF).padStart(3,'0')
     : 'P-' + String(numP).padStart(3,'0');
-  document.getElementById('numDisplay').textContent = n;
+  document.getElementById('numDisplay').value = n;
 }
 
 // ══════════════════════════════════
@@ -426,7 +426,7 @@ function generarPDF() {
 
   const base = calcTotal();
   const esF = tipodoc === 'factura';
-  const num = document.getElementById('numDisplay').textContent;
+  const num = document.getElementById('numDisplay').value.trim();
   if (esF) numF++; else numP++;
   actualizarNum();
 
@@ -536,41 +536,37 @@ function generarPDF() {
     y += ol.length * 4.5;
   }
 
-  // TOTAL — siempre al fondo del folio
+  // TOTAL — siempre al fondo del folio (y=258)
   const boxX = M+UW*.52, boxW = UW*.48;
-  const yTotal = 253; // posición fija cerca del pie
-  // si el contenido llega hasta aquí o más, nueva página
+  const yTotal = 258;
   if (y > yTotal - 4) { piePDF(doc,AW,M); doc.addPage(); }
-  y = yTotal;
 
   if (esF) {
     const iva=base*.21, total=base+iva;
     doc.setDrawColor(200,200,200); doc.setLineWidth(0.3);
-    doc.line(boxX,y,AW-M,y); y+=4;
+    doc.line(boxX,yTotal-4,AW-M,yTotal-4);
     doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(70,70,70);
-    doc.text('Base imponible:', boxX, y);
-    doc.text(fmtN(base)+' €', AW-M, y, {align:'right'}); y+=5.5;
-    doc.text('IVA 21%:', boxX, y);
-    doc.text(fmtN(iva)+' €', AW-M, y, {align:'right'}); y+=4;
+    doc.text('Base imponible:', boxX, yTotal+1);
+    doc.text(fmtN(base)+' €', AW-M, yTotal+1, {align:'right'});
+    doc.text('IVA 21%:', boxX, yTotal+6.5);
+    doc.text(fmtN(iva)+' €', AW-M, yTotal+6.5, {align:'right'});
     doc.setDrawColor(26,61,110); doc.setLineWidth(0.4);
-    doc.line(boxX,y,AW-M,y); y+=3;
-    doc.setFillColor(26,61,110); doc.roundedRect(boxX,y,boxW,13,2,2,'F');
+    doc.line(boxX,yTotal+9,AW-M,yTotal+9);
+    doc.setFillColor(26,61,110); doc.roundedRect(boxX,yTotal+11,boxW,13,2,2,'F');
     doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(255,255,255);
-    doc.text('TOTAL FACTURA (con IVA)', boxX+2, y+5);
+    doc.text('TOTAL FACTURA (con IVA)', boxX+2, yTotal+16);
     doc.setFontSize(11); doc.setFont('helvetica','bold');
-    doc.text(fmtN(total)+' €', AW-M-2, y+10, {align:'right'});
-    y+=16;
+    doc.text(fmtN(total)+' €', AW-M-2, yTotal+21, {align:'right'});
   } else {
     doc.setDrawColor(192,24,26); doc.setLineWidth(0.4);
-    doc.line(boxX,y,AW-M,y); y+=3;
-    doc.setFillColor(26,61,110); doc.roundedRect(boxX,y,boxW,13,2,2,'F');
+    doc.line(boxX,yTotal,AW-M,yTotal);
+    doc.setFillColor(26,61,110); doc.roundedRect(boxX,yTotal+2,boxW,13,2,2,'F');
     doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(255,255,255);
-    doc.text('TOTAL PRESUPUESTO', boxX+2, y+5);
+    doc.text('TOTAL PRESUPUESTO', boxX+2, yTotal+7);
     doc.setFontSize(8); doc.setFont('helvetica','italic');
-    doc.text('(sin IVA)', boxX+2, y+9.5);
+    doc.text('(sin IVA)', boxX+2, yTotal+11.5);
     doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
-    doc.text(fmtN(base)+' €', AW-M-2, y+10, {align:'right'});
-    y+=16;
+    doc.text(fmtN(base)+' €', AW-M-2, yTotal+12, {align:'right'});
   }
 
   piePDF(doc,AW,M);
