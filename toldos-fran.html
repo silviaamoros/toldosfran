@@ -176,7 +176,7 @@ tr.t-hr  { background:#fdf4ff !important; }
         <button class="btn btn-azul" id="btnPres" onclick="setTipo('presupuesto')">✏️ Presupuesto</button>
         <button class="btn btn-gris" id="btnFac" onclick="setTipo('factura')">🧾 Factura</button>
       </div>
-      <span class="num-display" id="numDisplay">P-001</span>
+      <input class="num-display" id="numDisplay" value="P-001" style="width:130px;text-align:center;cursor:text;border:2px solid var(--borde);" title="Edita el número si lo necesitas">
       <div style="display:flex;align-items:center;gap:8px;">
         <label style="font-size:0.78rem;font-weight:700;color:#666;text-transform:uppercase;">Fecha</label>
         <input type="date" id="docFecha" style="padding:7px 10px;border:1.5px solid var(--borde);border-radius:7px;font-size:0.875rem;font-family:inherit;">
