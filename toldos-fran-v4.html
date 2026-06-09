@@ -536,11 +536,12 @@ function generarPDF() {
     y += ol.length * 4.5;
   }
 
-  // TOTAL — siempre al final
-  y += 8;
-  if (y > 250) { piePDF(doc,AW,M); doc.addPage(); y=18; }
-
+  // TOTAL — siempre al fondo del folio
   const boxX = M+UW*.52, boxW = UW*.48;
+  const yTotal = 253; // posición fija cerca del pie
+  // si el contenido llega hasta aquí o más, nueva página
+  if (y > yTotal - 4) { piePDF(doc,AW,M); doc.addPage(); }
+  y = yTotal;
 
   if (esF) {
     const iva=base*.21, total=base+iva;
