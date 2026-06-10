@@ -395,7 +395,6 @@ function genPDF() {
   doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
   doc.text('Francisco Javier Ordóñez Cabello',AW-M,y+12,{align:'right'});
   doc.text('Tel: 614 643 672',AW-M,y+17,{align:'right'});
-  if(esF) doc.text('NIF: 48376639A',AW-M,y+22,{align:'right'});
   y+=31;
 
   doc.setDrawColor(192,24,26); doc.setLineWidth(0.8); doc.line(M,y,AW-M,y); y+=7;
