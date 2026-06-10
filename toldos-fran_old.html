@@ -138,11 +138,6 @@ tbody td{padding:5px 4px;vertical-align:middle}
         <input type="number" id="descPct" value="0" min="0" max="100" step="0.5" oninput="calcTotal()">
         <span>%</span>
       </div>
-      <div class="chip" style="border-color:#a7e3b8;background:#edfaf0;color:#166534;">
-        <span>Incremento</span>
-        <input type="number" id="incPct" value="0" min="0" step="0.5" oninput="calcTotal()" style="width:58px;padding:4px 6px;border:1.5px solid #a7e3b8;border-radius:6px;font-size:.875rem;font-family:inherit;text-align:center;background:#fff;">
-        <span>%</span>
-      </div>
     </div>
   </div>
 
@@ -196,8 +191,6 @@ tbody td{padding:5px 4px;vertical-align:middle}
       <div class="total-num" id="numPrincipal">0,00 €</div>
     </div>
     <div class="total-desglose" id="desglose" style="display:none">
-      <div class="td-row" id="rowCoste" style="display:none"><span>Coste (tus precios)</span><span id="valCoste">0,00 €</span></div>
-      <div class="td-row" id="rowBenef" style="display:none;color:#7be3a0;font-weight:700"><span id="lblBenef">Tu beneficio (0%)</span><span id="valBenef">+ 0,00 €</span></div>
       <div class="td-row" id="rowSubtotal"><span>Subtotal</span><span id="valSubtotal">0,00 €</span></div>
       <div class="td-row" id="rowDesc" style="display:none"><span id="lblDesc">Descuento 0%</span><span id="valDesc">- 0,00 €</span></div>
       <div class="td-row" id="rowBase" style="display:none"><span>Base imponible</span><span id="valBase">0,00 €</span></div>
@@ -281,12 +274,12 @@ function renderLineas() {
       <td class="td-sel">
         <select onchange="updL(${l.id},'t',this.value)">
           <option value="med" ${l.t==='med'?'selected':''}>📐 Largo × Ancho</option>
-          <option value="cai" ${l.t==='cai'?'selected':''}>📏 Línea × caída</option>
+          <option value="cai" ${l.t==='cai'?'selected':''}>📏 Línea x Caída</option>
           <option value="ud"  ${l.t==='ud' ?'selected':''}>📦 Uds</option>
           <option value="hr"  ${l.t==='hr' ?'selected':''}>⏱️ Horas</option>
         </select>
       </td>
-      <td>${(l.t==='med'||l.t==='cai')?`<input class="inp" type="text" value="${esc(l.med)}" placeholder="${l.t==='med'?'Ej: 300×250':'Ej: 400 × 250'}" oninput="updL(${l.id},'med',this.value)">`:'<span style="color:#ccc;font-size:.75rem;padding:0 8px">—</span>'}</td>
+      <td>${(l.t==='med'||l.t==='cai')?`<input class="inp" type="text" value="${esc(l.med)}" placeholder="${l.t==='med'?'Ej: 300×250':'Ej: caída 200'}" oninput="updL(${l.id},'med',this.value)">`:'<span style="color:#ccc;font-size:.75rem;padding:0 8px">—</span>'}</td>
       <td><input class="inp r" type="number" value="${l.cant}" min="0" step="0.25" oninput="updL(${l.id},'cant',this.value)"></td>
       <td><input class="inp r" type="number" value="${l.precio||''}" placeholder="0.00" step="0.01" min="0" oninput="updL(${l.id},'precio',this.value)"></td>
       <td class="td-tot">${fmtE(tot)}</td>
@@ -312,39 +305,18 @@ function elimL(id) { lineas = lineas.filter(l=>l.id!=id); renderLineas(); }
 
 // ── TOTAL ──
 function calcTotal() {
-  const inc    = parseFloat(document.getElementById('incPct').value)||0;
-  const factor = 1 + inc/100;
-
-  // Coste real (lo que tú pones) y precios cliente (incrementados)
-  let costSub = 0, sub = 0;
-  lineas.forEach(l => {
-    const pCli = +(l.precio * factor).toFixed(2);
-    costSub += l.cant * l.precio;
-    sub     += l.cant * pCli;
-  });
-  sub = +sub.toFixed(2);
-  costSub = +costSub.toFixed(2);
-  const benef = +(sub - costSub).toFixed(2);
-
+  const sub   = lineas.reduce((s,l) => s + l.cant*l.precio, 0);
   const pct   = parseFloat(document.getElementById('descPct').value)||0;
   const iva   = document.getElementById('chkIVA').checked;
   const desc  = +(sub*pct/100).toFixed(2);
   const base  = +(sub-desc).toFixed(2);
   const mIVA  = iva ? +(base*0.21).toFixed(2) : 0;
   const total = base + mIVA;
-  const hayD  = pct>0, hayInc = inc>0;
-  const hayDetalle = hayD||iva||hayInc;
+  const hayD  = pct>0, hayDetalle = hayD||iva;
 
   document.getElementById('lblPrincipal').textContent = hayDetalle ? 'Desglose' : 'Total';
   document.getElementById('numPrincipal').textContent = fmtE(hayDetalle ? total : sub);
   document.getElementById('desglose').style.display   = hayDetalle ? 'flex' : 'none';
-
-  show('rowCoste', hayInc);
-  document.getElementById('valCoste').textContent = fmtE(costSub);
-  show('rowBenef', hayInc);
-  document.getElementById('lblBenef').textContent = 'Tu beneficio ('+inc+'%)';
-  document.getElementById('valBenef').textContent = '+ '+fmtE(benef);
-
   document.getElementById('valSubtotal').textContent  = fmtE(sub);
   show('rowDesc', hayD);
   document.getElementById('lblDesc').textContent = 'Descuento '+pct+'%';
@@ -357,7 +329,7 @@ function calcTotal() {
   document.getElementById('lblFinal').textContent = iva ? 'TOTAL CON IVA' : 'TOTAL';
   document.getElementById('valFinal').textContent = fmtE(total);
 
-  return {sub, pct, desc, base, mIVA, total, iva, hayD, factor};
+  return {sub, pct, desc, base, mIVA, total, iva, hayD};
 }
 
 function show(id, v) { document.getElementById(id).style.display = v?'flex':'none'; }
@@ -368,7 +340,6 @@ function limpiar() {
   ['cliNom','cliTel','cliDir','cliNIF','obs'].forEach(id => document.getElementById(id).value='');
   document.getElementById('docFecha').value = hoy();
   document.getElementById('descPct').value = '0';
-  document.getElementById('incPct').value = '0';
   document.getElementById('chkIVA').checked = true;
   lineas = []; addLinea(); calcTotal();
 }
@@ -437,8 +408,7 @@ function genPDF() {
   cab();
 
   lineas.forEach((l,idx)=>{
-    const pCli=+(l.precio*T.factor).toFixed(2);
-    const tot=l.cant*pCli;
+    const tot=l.cant*l.precio;
     const dl=doc.splitTextToSize(l.desc||'',cw[0]-2);
     const rh=Math.max(7.5,dl.length*4.5);
     if(y+rh>260){pie(doc,AW,M);doc.addPage();y=18;cab();}
@@ -448,7 +418,7 @@ function genPDF() {
     if((l.t==='med'||l.t==='cai')&&l.med){doc.setFontSize(7.5);doc.setTextColor(90,90,90);doc.text(l.med,cx[1]+1,y+5,{maxWidth:cw[1]-2});}
     doc.setFontSize(8); doc.setTextColor(30,42,58);
     doc.text(fmtN(l.cant),cx[2]+cw[2]-1,y+5,{align:'right'});
-    doc.text(fmtN(pCli)+' €',cx[3]+cw[3]-1,y+5,{align:'right'});
+    doc.text(fmtN(l.precio)+' €',cx[3]+cw[3]-1,y+5,{align:'right'});
     doc.setFont('helvetica','bold');
     doc.text(fmtN(tot)+' €',cx[4]+cw[4]-1,y+5,{align:'right'});
     y+=rh;
@@ -463,14 +433,9 @@ function genPDF() {
     const ol=doc.splitTextToSize(ob,UW);doc.text(ol,M,y);y+=ol.length*4.5;
   }
 
-  // Total al fondo — altura calculada para no pisar el pie de página
-  const bx=M+UW*.50, bw=UW*.50;
-  let altura = 4 + 5.5;                 // línea inicial + subtotal
-  if(T.hayD) altura += 5.5;             // descuento
-  if(T.iva)  altura += 5.5 + 4;         // base + iva
-  altura += 3 + 13;                     // separador + caja total
-  const yT = 278 - altura;              // el bloque termina en y=278, por encima del pie (284)
-  if(y > yT - 2){pie(doc,AW,M);doc.addPage();}
+  // Total al fondo
+  const bx=M+UW*.50, bw=UW*.50, yT=260;
+  if(y>yT-10){pie(doc,AW,M);doc.addPage();}
 
   doc.setDrawColor(200,200,200);doc.setLineWidth(0.3);doc.line(bx,yT,AW-M,yT);
   let yt=yT+4;
