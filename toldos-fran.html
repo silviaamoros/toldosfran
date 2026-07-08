@@ -133,6 +133,9 @@ tbody td{padding:5px 4px;vertical-align:middle}
       <label class="chip chip-iva">
         <input type="checkbox" id="chkIVA" checked onchange="calcTotal()"> IVA 21%
       </label>
+      <label class="chip" style="border-color:#c7d7f5;background:#f0f4ff;color:var(--azul)">
+        <input type="checkbox" id="chkLogo" checked> Incluir logo
+      </label>
       <div class="chip chip-desc">
         <span>Descuento</span>
         <input type="number" id="descPct" value="0" min="0" max="100" step="0.5" oninput="calcTotal()">
@@ -389,20 +392,26 @@ function genPDF() {
   const M=16, AW=210, UW=AW-M*2;
   let y=16;
 
-  try { doc.addImage('data:image/jpeg;base64,'+LOGO,'JPEG',M,y,26,26); } catch(e){}
-  doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(26,61,110);
-  doc.text('TOLDOS FRAN',AW-M,y+6,{align:'right'});
-  doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-  doc.text('Francisco Javier Ordóñez Cabello',AW-M,y+12,{align:'right'});
-  doc.text('Tel: 614 643 672',AW-M,y+17,{align:'right'});
-  if(esF) doc.text('NIF: 48376639A',AW-M,y+22,{align:'right'});
+  const conLogo = document.getElementById('chkLogo').checked;
+  const cTitulo = conLogo ? [26,61,110] : [0,0,0];
+  const cLinea  = conLogo ? [192,24,26] : [0,0,0];
+
+  if (conLogo) {
+    try { doc.addImage('data:image/jpeg;base64,'+LOGO,'JPEG',M,y,26,26); } catch(e){}
+    doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(26,61,110);
+    doc.text('TOLDOS FRAN',AW-M,y+6,{align:'right'});
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+    doc.text('Francisco Javier Ordóñez Cabello',AW-M,y+12,{align:'right'});
+    doc.text('Tel: 614 643 672',AW-M,y+17,{align:'right'});
+    if(esF) doc.text('NIF: 48376639A',AW-M,y+22,{align:'right'});
+  }
   y+=31;
 
-  doc.setDrawColor(192,24,26); doc.setLineWidth(0.8); doc.line(M,y,AW-M,y); y+=7;
+  doc.setDrawColor(...cLinea); doc.setLineWidth(0.8); doc.line(M,y,AW-M,y); y+=7;
 
-  doc.setFontSize(15); doc.setFont('helvetica','bold'); doc.setTextColor(26,61,110);
+  doc.setFontSize(15); doc.setFont('helvetica','bold'); doc.setTextColor(...cTitulo);
   doc.text(esF?'FACTURA':'PRESUPUESTO',M,y);
-  doc.setFontSize(11); doc.setTextColor(192,24,26);
+  doc.setFontSize(11); doc.setTextColor(...cTitulo);
   doc.text(num,AW-M,y,{align:'right'}); y+=5.5;
   doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(110,110,110);
   doc.text('Fecha: '+fmtF(document.getElementById('docFecha').value),AW-M,y,{align:'right'}); y+=9;
